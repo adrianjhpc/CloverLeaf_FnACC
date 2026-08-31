@@ -80,23 +80,19 @@ CONTAINS
 
     INTEGER          :: j,k
 
-    REAL(KIND=8)     :: div,dsx,dsy,dtut,dtvt,dtct,dtdivt,cc,dv1,dv2,jk_control
+    REAL(KIND=8)     :: div,dsx,dsy,dtut,dtvt,dtct,dtdivt,cc,dv1,dv2,jk_control,dt_candidate
 
     small=0
     dt_min_val = g_big
     jk_control=1.1
 
-!$ACC DATA    &
-!$ACC PRESENT(celldx,celldy,cellx,celly,density0,soundspeed,viscosity_a,volume) &
-!$ACC PRESENT(xarea,xvel0,yarea,yvel0,dt_min) &
-!$ACC COPYIN(g_small)
-
-!$ACC KERNELS
+!$fnacc enter data copyin(g_small) 
+!$fnacc present(celldx,celldy,cellx,celly,density0,soundspeed,viscosity_a,volume)
+!$fnacc present(xarea,xvel0,yarea,yvel0,dt_min)
 
 
-!$ACC LOOP INDEPENDENT REDUCTION(MIN : dt_min_val)
+    !$fnacc parallel tile(16,16) reduction(min:dt_min_val)
     DO k=y_min,y_max
-!$ACC LOOP INDEPENDENT PRIVATE(dsx,dsy,cc,dv1,dv2,div,dtct,dtut,dtvt,dtdivt) REDUCTION(MIN : dt_min_val)
       DO j=x_min,x_max
 
         dsx=celldx(j)
@@ -132,16 +128,14 @@ CONTAINS
           dtdivt=g_big
         ENDIF
 
-        dt_min_val=MIN(dt_min_val,dtct,dtut,dtvt,dtdivt)
+        dt_candidate = MIN(dtct, dtut, dtvt, dtdivt)
+        dt_min_val = MIN(dt_min_val, dt_candidate)
 
       ENDDO
     ENDDO
+!$fnacc exit data delete(g_small)
 
 
-
-!$ACC END KERNELS
-
-!$ACC END DATA
 
     ! Extract the mimimum timestep information
     dtl_control=10.01*(jk_control-INT(jk_control))

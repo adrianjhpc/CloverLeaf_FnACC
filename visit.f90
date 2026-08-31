@@ -215,23 +215,21 @@ SUBROUTINE update_host_data(x_min,x_max,y_min,y_max, &
     REAL(KIND=8), DIMENSION(x_min-2:x_max+3) :: vertexx
     REAL(KIND=8), DIMENSION(x_min-2:x_max+3) :: vertexy
 
-!$ACC DATA &
-!$ACC PRESENT(density0)  &
-!$ACC PRESENT(energy0)   &
-!$ACC PRESENT(pressure)  &
-!$ACC PRESENT(viscosity) &
-!$ACC PRESENT(xvel0)     &
-!$ACC PRESENT(yvel0)     &
-!$ACC PRESENT(vertexx)   &
-!$ACC PRESENT(vertexy)
-!$ACC UPDATE HOST(density0)
-!$ACC UPDATE HOST(energy0)
-!$ACC UPDATE HOST(pressure)
-!$ACC UPDATE HOST(viscosity)
-!$ACC UPDATE HOST(xvel0)
-!$ACC UPDATE HOST(yvel0)
-!$ACC UPDATE HOST(vertexx)
-!$ACC UPDATE HOST(vertexy)
-!$ACC END DATA
+!$fnacc present(density0)  
+!$fnacc present(energy0)  
+!$fnacc present(pressure) 
+!$fnacc present(viscosity)
+!$fnacc present(xvel0)    
+!$fnacc present(yvel0)    
+!$fnacc present(vertexx)   
+!$fnacc present(vertexy)
+!$fnacc update host(density0)
+!$fnacc update host(energy0)
+!$fnacc update host(pressure)
+!$fnacc update host(viscosity)
+!$fnacc update host(xvel0)
+!$fnacc update host(yvel0)
+!$fnacc update host(vertexx)
+!$fnacc update host(vertexy)
 
 END SUBROUTINE update_host_data

@@ -60,23 +60,19 @@ CONTAINS
 
     INTEGER :: j,k
 
-    REAL(KIND=8)  :: recip_volume,energy_change,min_cell_volume
+    REAL(KIND=8)  :: recip_volume,energy_change
     REAL(KIND=8)  :: right_flux,left_flux,top_flux,bottom_flux,total_flux
     REAL(KIND=8)  :: volume_change_s
 
-!$ACC DATA &
-!$ACC PRESENT(density0,energy0,pressure,viscosity,volume,xarea) &
-!$ACC PRESENT(xvel0,yarea,yvel0) &
-!$ACC PRESENT(density1,energy1) &
-!$ACC PRESENT(xvel1,yvel1) &
-!$ACC PRESENT(volume_change)
+!$fnacc present(density0,energy0,pressure,viscosity,volume,xarea) 
+!$fnacc present(xvel0,yarea,yvel0) 
+!$fnacc present(density1,energy1) 
+!$fnacc present(xvel1,yvel1) 
+!$fnacc present(volume_change)
 
     IF(predict)THEN
-!$ACC KERNELS
-
-!$ACC LOOP INDEPENDENT
+      !$fnacc parallel tile(16,16)
       DO k=y_min,y_max
-!$ACC LOOP INDEPENDENT PRIVATE(right_flux,left_flux,top_flux,bottom_flux,total_flux,min_cell_volume,energy_change,recip_volume,volume_change_s)
         DO j=x_min,x_max
 
           left_flux=  (xarea(j  ,k  )*(xvel0(j  ,k  )+xvel0(j  ,k+1)                     &
@@ -91,10 +87,6 @@ CONTAINS
 
           volume_change_s=volume(j,k)/(volume(j,k)+total_flux)
 
-          min_cell_volume=MIN(volume(j,k)+right_flux-left_flux+top_flux-bottom_flux &
-            ,volume(j,k)+right_flux-left_flux                      &
-            ,volume(j,k)+top_flux-bottom_flux)
- 
           recip_volume=1.0/volume(j,k)
 
           energy_change=(pressure(j,k)/density0(j,k)+viscosity(j,k)/density0(j,k))*total_flux*recip_volume
@@ -106,14 +98,11 @@ CONTAINS
         ENDDO
       ENDDO
 
-!$ACC END KERNELS
 
     ELSE
-!$ACC KERNELS
 
-!$ACC LOOP INDEPENDENT
+      !$fnacc parallel tile(16,16)
       DO k=y_min,y_max
-!$ACC LOOP INDEPENDENT PRIVATE(right_flux,left_flux,top_flux,bottom_flux,total_flux,min_cell_volume,energy_change,recip_volume,volume_change_s)
         DO j=x_min,x_max
 
           left_flux=  (xarea(j  ,k  )*(xvel0(j  ,k  )+xvel0(j  ,k+1)                     &
@@ -128,10 +117,6 @@ CONTAINS
 
           volume_change_s=volume(j,k)/(volume(j,k)+total_flux)
 
-          min_cell_volume=MIN(volume(j,k)+right_flux-left_flux+top_flux-bottom_flux &
-            ,volume(j,k)+right_flux-left_flux                      &
-            ,volume(j,k)+top_flux-bottom_flux)
- 
           recip_volume=1.0/volume(j,k)
 
           energy_change=(pressure(j,k)/density0(j,k)+viscosity(j,k)/density0(j,k))*total_flux*recip_volume
@@ -144,10 +129,7 @@ CONTAINS
       ENDDO
 
 
-!$ACC END KERNELS
   ENDIF
-!$ACC END DATA
-
 
 
   END SUBROUTINE PdV_kernel

@@ -47,14 +47,10 @@ CONTAINS
     REAL(KIND=8)  :: ugrad,vgrad,grad2,pgradx,pgrady,pgradx2,pgrady2,grad     &
       ,ygrad,pgrad,xgrad,div,strain2,limiter,dirx,diry
 
-!$ACC DATA &
-!$ACC PRESENT(density0,pressure,viscosity,xvel0,yvel0)
+!$fnacc present(density0,pressure,viscosity,xvel0,yvel0)
 
-!$ACC KERNELS
-
-!$ACC LOOP INDEPENDENT
+    !$fnacc parallel tile(16,16)
     DO k=y_min,y_max
-!$ACC LOOP INDEPENDENT PRIVATE(ugrad,vgrad,div,strain2,pgradx,pgrady,pgradx2,pgrady2,limiter,pgrad,xgrad,ygrad,grad,grad2,dirx,diry)
       DO j=x_min,x_max
         ugrad=(xvel0(j+1,k  )+xvel0(j+1,k+1))-(xvel0(j  ,k  )+xvel0(j  ,k+1))
 
@@ -81,7 +77,7 @@ CONTAINS
           IF(pgradx.LT.0.0) dirx=-1.0_8
           pgradx = dirx*MAX(1.0e-16_8,ABS(pgradx))
           diry=1.0_8
-          IF(pgradx.LT.0.0) diry=-1.0_8
+          IF(pgrady.LT.0.0) diry=-1.0_8
           pgrady = diry*MAX(1.0e-16_8,ABS(pgrady))
           pgrad = SQRT(pgradx**2+pgrady**2)
           xgrad = ABS(celldx(j)*pgrad/pgradx)
@@ -95,10 +91,6 @@ CONTAINS
       ENDDO
     ENDDO
 
-
-!$ACC END KERNELS
-
-!$ACC END DATA
 
   END SUBROUTINE viscosity_kernel
 

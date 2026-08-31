@@ -54,85 +54,77 @@ CONTAINS
     REAL(KIND=8), DIMENSION(x_min-2:x_max+2 ,y_min-2:y_max+3) :: yarea
 
     INTEGER      :: j,k
-!$ACC DATA
-!$ACC KERNELS
-!$ACC LOOP INDEPENDENT
+    !$fnacc parallel tile(128)
     DO j=x_min-2,x_max+3
       vertexx(j)=xmin+dx*float(j-x_min)
     ENDDO
 
 
-!$ACC LOOP INDEPENDENT
+    !$fnacc parallel tile(128)
     DO j=x_min-2,x_max+3
       vertexdx(j)=dx
     ENDDO
 
 
-!$ACC LOOP INDEPENDENT
+    !$fnacc parallel tile(128)
     DO k=y_min-2,y_max+3
       vertexy(k)=ymin+dy*float(k-y_min)
     ENDDO
 
 
-!$ACC LOOP INDEPENDENT
+    !$fnacc parallel tile(128)
     DO k=y_min-2,y_max+3
       vertexdy(k)=dy
     ENDDO
 
 
-!$ACC LOOP INDEPENDENT
+    !$fnacc parallel tile(128)
     DO j=x_min-2,x_max+2
       cellx(j)=0.5*(vertexx(j)+vertexx(j+1))
     ENDDO
 
 
-!$ACC LOOP INDEPENDENT
+    !$fnacc parallel tile(128)
     DO j=x_min-2,x_max+2
       celldx(j)=dx
     ENDDO
 
 
-!$ACC LOOP INDEPENDENT
+    !$fnacc parallel tile(128)
     DO k=y_min-2,y_max+2
       celly(k)=0.5*(vertexy(k)+vertexy(k+1))
     ENDDO
 
 
-!$ACC LOOP INDEPENDENT
+    !$fnacc parallel tile(128)
     DO k=y_min-2,y_max+2
       celldy(k)=dy
     ENDDO
 
 
-!$ACC LOOP INDEPENDENT PRIVATE(j)
+    !$fnacc parallel tile(16,16)
     DO k=y_min-2,y_max+2
-!$ACC LOOP INDEPENDENT
       DO j=x_min-2,x_max+2
         volume(j,k)=dx*dy
       ENDDO
     ENDDO
 
 
-!$ACC LOOP INDEPENDENT PRIVATE(j)
+    !$fnacc parallel tile(16,16)
     DO k=y_min-2,y_max+2
-!$ACC LOOP INDEPENDENT
       DO j=x_min-2,x_max+2
         xarea(j,k)=celldy(k)
       ENDDO
     ENDDO
 
 
-!$ACC LOOP INDEPENDENT PRIVATE(j)
+    !$fnacc parallel tile(16,16)
     DO k=y_min-2,y_max+2
-!$ACC LOOP INDEPENDENT
       DO j=x_min-2,x_max+2
         yarea(j,k)=celldx(j)
       ENDDO
     ENDDO
 
-
-!$ACC END KERNELS
-!$ACC END DATA
 
   END SUBROUTINE initialise_chunk_kernel
 

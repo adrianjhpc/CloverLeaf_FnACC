@@ -1,4 +1,4 @@
-!Crown Copyright 2012 AWE.
+! Crown Copyright 2012 AWE.
 !
 ! This file is part of CloverLeaf.
 !
@@ -76,17 +76,13 @@ CONTAINS
 
     mom_sweep=direction+2*(sweep_number-1)
 
-!$ACC DATA          &
-!$ACC PRESENT(vel1)    &
-!$ACC PRESENT(volume,mass_flux_x,mass_flux_y,vol_flux_x,vol_flux_y,density1,celldx,celldy) &
-!$ACC PRESENT(mom_flux,node_flux,node_mass_post,node_mass_pre,post_vol,pre_vol)
-
-!$ACC KERNELS
+!$fnacc present(vel1) 
+!$fnacc present(volume,mass_flux_x,mass_flux_y,vol_flux_x,vol_flux_y,density1,celldx,celldy)
+!$fnacc present(mom_flux,node_flux,node_mass_post,node_mass_pre,post_vol,pre_vol)
 
     IF(mom_sweep.EQ.1)THEN ! x 1
-!$ACC LOOP INDEPENDENT
+      !$fnacc parallel tile(16,16)
       DO k=y_min-2,y_max+2
-!$ACC LOOP INDEPENDENT
         DO j=x_min-2,x_max+2
           post_vol(j,k)= volume(j,k)+vol_flux_y(j  ,k+1)-vol_flux_y(j,k)
           pre_vol(j,k)=post_vol(j,k)+vol_flux_x(j+1,k  )-vol_flux_x(j,k)
@@ -94,9 +90,8 @@ CONTAINS
       ENDDO
 
     ELSEIF(mom_sweep.EQ.2)THEN ! y 1
-!$ACC LOOP INDEPENDENT
+      !$fnacc parallel tile(16,16)
       DO k=y_min-2,y_max+2
-!$ACC LOOP INDEPENDENT
         DO j=x_min-2,x_max+2
           post_vol(j,k)= volume(j,k)+vol_flux_x(j+1,k  )-vol_flux_x(j,k)
           pre_vol(j,k)=post_vol(j,k)+vol_flux_y(j  ,k+1)-vol_flux_y(j,k)
@@ -104,9 +99,8 @@ CONTAINS
       ENDDO
 
     ELSEIF(mom_sweep.EQ.3)THEN ! x 2
-!$ACC LOOP INDEPENDENT
+      !$fnacc parallel tile(16,16)
       DO k=y_min-2,y_max+2
-!$ACC LOOP INDEPENDENT
         DO j=x_min-2,x_max+2
           post_vol(j,k)=volume(j,k)
           pre_vol(j,k)=post_vol(j,k)+vol_flux_y(j  ,k+1)-vol_flux_y(j,k)
@@ -114,9 +108,8 @@ CONTAINS
       ENDDO
 
     ELSEIF(mom_sweep.EQ.4)THEN ! y 2
-!$ACC LOOP INDEPENDENT
+      !$fnacc parallel tile(16,16)
       DO k=y_min-2,y_max+2
-!$ACC LOOP INDEPENDENT
         DO j=x_min-2,x_max+2
           post_vol(j,k)=volume(j,k)
           pre_vol(j,k)=post_vol(j,k)+vol_flux_x(j+1,k  )-vol_flux_x(j,k)
@@ -127,9 +120,8 @@ CONTAINS
 
     IF(direction.EQ.1)THEN
       IF(which_vel.EQ.1)THEN
-  !$ACC LOOP INDEPENDENT
+        !$fnacc parallel tile(16,16)
         DO k=y_min,y_max+1
-!$ACC LOOP INDEPENDENT
           DO j=x_min-2,x_max+2
             ! Find staggered mesh mass fluxes, nodal masses and volumes.
             node_flux(j,k)=0.25_8*(mass_flux_x(j,k-1  )+mass_flux_x(j  ,k)  &
@@ -137,9 +129,8 @@ CONTAINS
           ENDDO
         ENDDO
 
-  !$ACC LOOP INDEPENDENT
+        !$fnacc parallel tile(16,16)
         DO k=y_min,y_max+1
-!$ACC LOOP INDEPENDENT
           DO j=x_min-1,x_max+2
             ! Staggered cell mass post advection
             node_mass_post(j,k)=0.25_8*(density1(j  ,k-1)*post_vol(j  ,k-1)                   &
@@ -151,9 +142,8 @@ CONTAINS
         ENDDO
       ENDIF
 
-!$ACC LOOP INDEPENDENT
+      !$fnacc parallel tile(16,16)
       DO k=y_min,y_max+1
-!$ACC LOOP INDEPENDENT PRIVATE(upwind,downwind,donor,dif,sigma,width,limiter,vdiffuw,vdiffdw,auw,adw,wind,advec_vel_s)
         DO j=x_min-1,x_max+1
           IF(node_flux(j,k).LT.0.0)THEN
             upwind=j+2
@@ -183,9 +173,8 @@ CONTAINS
         ENDDO
       ENDDO
 
-!$ACC LOOP INDEPENDENT
+      !$fnacc parallel tile(16,16)
       DO k=y_min,y_max+1
-!$ACC LOOP INDEPENDENT
         DO j=x_min,x_max+1
           vel1 (j,k)=(vel1 (j,k)*node_mass_pre(j,k)+mom_flux(j-1,k)-mom_flux(j,k))/node_mass_post(j,k)
         ENDDO
@@ -193,9 +182,8 @@ CONTAINS
 
     ELSEIF(direction.EQ.2)THEN
       IF(which_vel.EQ.1)THEN
-  !$ACC LOOP INDEPENDENT
+        !$fnacc parallel tile(16,16)
         DO k=y_min-2,y_max+2
-!$ACC LOOP INDEPENDENT
           DO j=x_min,x_max+1
             ! Find staggered mesh mass fluxes and nodal masses and volumes.
             node_flux(j,k)=0.25_8*(mass_flux_y(j-1,k  )+mass_flux_y(j  ,k  ) &
@@ -203,9 +191,8 @@ CONTAINS
           ENDDO
         ENDDO
 
-  !$ACC LOOP INDEPENDENT
+        !$fnacc parallel tile(16,16)
         DO k=y_min-1,y_max+2
-!$ACC LOOP INDEPENDENT
           DO j=x_min,x_max+1
             node_mass_post(j,k)=0.25_8*(density1(j  ,k-1)*post_vol(j  ,k-1)                     &
               +density1(j  ,k  )*post_vol(j  ,k  )                     &
@@ -215,9 +202,8 @@ CONTAINS
           ENDDO
         ENDDO
       ENDIF
-!$ACC LOOP INDEPENDENT
+      !$fnacc parallel tile(16,16)
       DO k=y_min-1,y_max+1
-!$ACC LOOP INDEPENDENT PRIVATE(upwind,donor,downwind,dif,sigma,width,limiter,vdiffuw,vdiffdw,auw,adw,wind,advec_vel_s)
         DO j=x_min,x_max+1
           IF(node_flux(j,k).LT.0.0)THEN
             upwind=k+2
@@ -248,20 +234,14 @@ CONTAINS
         ENDDO
       ENDDO
 
-!$ACC LOOP INDEPENDENT
+      !$fnacc parallel tile(16,16)
       DO k=y_min,y_max+1
-!$ACC LOOP INDEPENDENT
         DO j=x_min,x_max+1
           vel1 (j,k)=(vel1(j,k)*node_mass_pre(j,k)+mom_flux(j,k-1)-mom_flux(j,k))/node_mass_post(j,k)
         ENDDO
       ENDDO
 
     ENDIF
-
-
-!$ACC END KERNELS
-
-!$ACC END DATA
 
   END SUBROUTINE advec_mom_kernel
 

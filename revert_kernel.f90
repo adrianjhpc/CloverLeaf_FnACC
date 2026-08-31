@@ -38,21 +38,16 @@ CONTAINS
 
     INTEGER :: j,k
 
-!$ACC DATA &
-!$ACC PRESENT(density0,energy0,density1,energy1)
-!$ACC KERNELS
-
-!$ACC LOOP INDEPENDENT
+!$fnacc present(density0,energy0,density1,energy1)
+    
+    !$fnacc parallel tile(16,16)
     DO k=y_min,y_max
-!$ACC LOOP INDEPENDENT
       DO j=x_min,x_max
         density1(j,k)=density0(j,k)
         energy1(j,k)=energy0(j,k)
       ENDDO
     ENDDO
 
-!$ACC END KERNELS
-!$ACC END DATA
 
 
   END SUBROUTINE revert_kernel

@@ -58,20 +58,15 @@ CONTAINS
       y_inc=1
     ENDIF
 
-!$ACC DATA &
-!$ACC PRESENT(left_snd_buffer, field)
-!$ACC KERNELS
-!$ACC LOOP INDEPENDENT
+!$fnacc present(left_snd_buffer, field)
+    !$fnacc parallel tile(16,16)
     DO k=y_min-depth,y_max+y_inc+depth
-!$ACC LOOP INDEPENDENT
       DO j=1,depth
         index= buffer_offset + j+(k+depth-1)*depth
         left_snd_buffer(index)=field(x_min+x_inc-1+j,k)
       ENDDO
     ENDDO
-!$ACC END KERNELS
-!$ACC UPDATE HOST(left_snd_buffer)
-!$ACC END DATA
+!$fnacc update host(left_snd_buffer)
 
   END SUBROUTINE clover_pack_message_left
 
@@ -110,20 +105,15 @@ CONTAINS
       y_inc=1
     ENDIF
 
-!$ACC DATA &
-!$ACC PRESENT (left_rcv_buffer, field)
-!$ACC UPDATE DEVICE (left_rcv_buffer)
-!$ACC KERNELS
-!$ACC LOOP INDEPENDENT
+!$fnacc present (left_rcv_buffer, field)
+!$fnacc update device (left_rcv_buffer)
+    !$fnacc parallel tile(16,16)
     DO k=y_min-depth,y_max+y_inc+depth
-!$ACC LOOP INDEPENDENT
       DO j=1,depth
         index= buffer_offset + j+(k+depth-1)*depth
         field(x_min-j,k)=left_rcv_buffer(index)
       ENDDO
     ENDDO
-!$ACC END KERNELS
-!$ACC END DATA
 
   END SUBROUTINE clover_unpack_message_left
 
@@ -161,20 +151,15 @@ CONTAINS
       x_inc=0
       y_inc=1
     ENDIF
-!$ACC DATA &
-!$ACC PRESENT(right_snd_buffer, field)
-!$ACC KERNELS
-!$ACC LOOP INDEPENDENT
+!$fnacc present(right_snd_buffer, field)
+    !$fnacc parallel tile(16,16)
     DO k=y_min-depth,y_max+y_inc+depth
-!$ACC LOOP INDEPENDENT
       DO j=1,depth
         index= buffer_offset + j+(k+depth-1)*depth
         right_snd_buffer(index)=field(x_max+1-j,k)
       ENDDO
     ENDDO
-!$ACC END KERNELS
-!$ACC UPDATE HOST(right_snd_buffer)
-!$ACC END DATA
+!$fnacc update host(right_snd_buffer)
 
   END SUBROUTINE clover_pack_message_right
 
@@ -212,20 +197,15 @@ CONTAINS
       x_inc=0
       y_inc=1
     ENDIF
-!$ACC DATA &
-!$ACC PRESENT (right_rcv_buffer, field)
-!$ACC UPDATE DEVICE (right_rcv_buffer)
-!$ACC KERNELS
-!$ACC LOOP INDEPENDENT
+!$fnacc present (right_rcv_buffer, field)
+!$fnacc update device (right_rcv_buffer)
+    !$fnacc parallel tile(16,16)
     DO k=y_min-depth,y_max+y_inc+depth
-!$ACC LOOP INDEPENDENT
       DO j=1,depth
         index= buffer_offset + j+(k+depth-1)*depth
         field(x_max+x_inc+j,k)=right_rcv_buffer(index)
       ENDDO
     ENDDO
-!$ACC END KERNELS
-!$ACC END DATA
 
   END SUBROUTINE clover_unpack_message_right
 
@@ -264,20 +244,15 @@ CONTAINS
       y_inc=1
     ENDIF
 
-!$ACC DATA &
-!$ACC PRESENT(top_snd_buffer, field)
-!$ACC KERNELS
-!$ACC LOOP INDEPENDENT
+!$fnacc present(top_snd_buffer, field)
+    !$fnacc parallel tile(16,16)
     DO k=1,depth
-!$ACC LOOP INDEPENDENT
       DO j=x_min-depth,x_max+x_inc+depth
         index= buffer_offset + k+(j+depth-1)*depth
         top_snd_buffer(index)=field(j,y_max+1-k)
       ENDDO
     ENDDO
-!$ACC END KERNELS
-!$ACC UPDATE HOST(top_snd_buffer)
-!$ACC END DATA
+!$fnacc update host(top_snd_buffer)
   
   END SUBROUTINE clover_pack_message_top
 
@@ -315,21 +290,16 @@ CONTAINS
       x_inc=0
       y_inc=1
     ENDIF
-!$ACC DATA &
-!$ACC PRESENT (top_rcv_buffer, field)
-!$ACC UPDATE DEVICE (top_rcv_buffer)
-!$ACC KERNELS
-!$ACC LOOP INDEPENDENT
+!$fnacc present (top_rcv_buffer, field)
+!$fnacc update device (top_rcv_buffer)
+    !$fnacc parallel tile(16,16)
     DO k=1,depth
-!$ACC LOOP INDEPENDENT
       DO j=x_min-depth,x_max+x_inc+depth
         index= buffer_offset + k+(j+depth-1)*depth
         !index= buffer_offset + j + depth+(k-1)*(x_max+x_inc+(2*depth))
         field(j,y_max+y_inc+k)=top_rcv_buffer(index)
       ENDDO
     ENDDO
-!$ACC END KERNELS
-!$ACC END DATA
 
   END SUBROUTINE clover_unpack_message_top
 
@@ -368,21 +338,16 @@ CONTAINS
       y_inc=1
     ENDIF
 
-!$ACC DATA &
-!$ACC PRESENT(bottom_snd_buffer, field)
-!$ACC KERNELS
-!$ACC LOOP INDEPENDENT
+!$fnacc present(bottom_snd_buffer, field)
+    !$fnacc parallel tile(16,16)
     DO k=1,depth
-!$ACC LOOP INDEPENDENT
       DO j=x_min-depth,x_max+x_inc+depth
         index= buffer_offset + k+(j+depth-1)*depth
         !index= buffer_offset + j+depth+(k-1)*(x_max+x_inc+(2*depth))
         bottom_snd_buffer(index)=field(j,y_min+y_inc-1+k)
       ENDDO
     ENDDO
-!$ACC END KERNELS
-!$ACC UPDATE HOST(bottom_snd_buffer)
-!$ACC END DATA
+!$fnacc update host(bottom_snd_buffer)
 
   END SUBROUTINE clover_pack_message_bottom
 
@@ -420,21 +385,16 @@ CONTAINS
       x_inc=0
       y_inc=1
     ENDIF
-!$ACC DATA &
-!$ACC PRESENT (bottom_rcv_buffer, field)
-!$ACC UPDATE DEVICE (bottom_rcv_buffer)
-!$ACC KERNELS
-!$ACC LOOP INDEPENDENT
+!$fnacc present (bottom_rcv_buffer, field)
+!$fnacc update device (bottom_rcv_buffer)
+    !$fnacc parallel tile(16,16)
     DO k=1,depth
-!$ACC LOOP INDEPENDENT
       DO j=x_min-depth,x_max+x_inc+depth
         index= buffer_offset + k+(j+depth-1)*depth
         !index= buffer_offset + j+depth+(k-1)*(x_max+x_inc+(2*depth))
         field(j,y_min-k)=bottom_rcv_buffer(index)
       ENDDO
     ENDDO
-!$ACC END KERNELS
-!$ACC END DATA
 
   END SUBROUTINE clover_unpack_message_bottom
 

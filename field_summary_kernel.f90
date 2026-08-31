@@ -50,13 +50,10 @@ CONTAINS
     ie=0.0
     ke=0.0
     press=0.0
-!$ACC DATA &
-!$ACC PRESENT(volume,density0,energy0,pressure,xvel0,yvel0)
-!$ACC KERNELS
+!$fnacc present(volume,density0,energy0,pressure,xvel0,yvel0)
 
-!$ACC LOOP INDEPENDENT REDUCTION(+:vol) REDUCTION(+:mass) REDUCTION(+:press) REDUCTION(+:ie) REDUCTION(+:ke), private(vsqrd,cell_vol,cell_mass,jv,kv) GANG(128)
+    !$fnacc parallel tile(16,16) reduction(+:vol, +:mass, +:press, +:ie, +:ke)
     DO k=y_min,y_max
-!$ACC LOOP INDEPENDENT REDUCTION(+:vol) REDUCTION(+:mass) REDUCTION(+:press) REDUCTION(+:ie) REDUCTION(+:ke)
       DO j=x_min,x_max
         vsqrd=0.0
         DO kv=k,k+1
@@ -74,10 +71,6 @@ CONTAINS
       ENDDO
     ENDDO
 
-
-!$ACC END KERNELS
-
-!$ACC END DATA
 
   END SUBROUTINE field_summary_kernel
 
